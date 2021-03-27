@@ -6,12 +6,30 @@ import (
 )
 
 type CPU struct {
-	halted bool
+	Halted bool
+	GPR    []uint32
+	Pc     uint32
+}
+
+func NewCPU() CPU {
+	return CPU{
+		Halted: false,
+		GPR:    make([]uint32, 32),
+		Pc:     0xBFC00000, // Bios start
+	}
+}
+
+func (cpu *CPU) Execute(instruction Instruction) {
+	switch instruction.Opcode {
+	default:
+		log.Fatalf("unknown instruction: %02x", instruction.Opcode)
+	}
 }
 
 func (cpu *CPU) Cycle(bus *Bus) {
-	// instruction = cpu.fetchInstruction(bus)
-	// cpu.execute(instruction)
+	instruction := NewInstruction(bus.ReadWord(cpu.Pc))
+	cpu.Pc += 4
+	cpu.Execute(instruction)
 }
 
 func main() {
@@ -21,6 +39,10 @@ func main() {
 	}
 
 	bus := NewBus(bios)
+	cpu := NewCPU()
 
-	log.Printf("%#v", NewInstruction(bus.ReadWord(0xBFC00000)))
+	for !cpu.Halted {
+		cpu.Cycle(&bus)
+	}
+
 }

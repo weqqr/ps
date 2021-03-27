@@ -36,7 +36,7 @@ func (bus *Bus) Map(address uint32) (uint32, []byte) {
 	case inRange(address, BiosStart, BiosSize):
 		return address - BiosStart, bus.bios
 	default:
-		log.Fatal("unknown memory region at address %d", address)
+		log.Fatalf("unknown memory region at address %x", address)
 	}
 
 	return 0, []byte{}

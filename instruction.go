@@ -2,28 +2,28 @@ package main
 
 // See https://en.wikipedia.org/wiki/MIPS_architecture#Instruction_formats
 type Instruction struct {
-	opcode uint32
+	Opcode uint32
 
-	rs, rt, rd uint32
-	shamt      uint32
-	funct      uint32
+	Rs, Rt, Rd  uint32
+	ShiftAmount uint32
+	Function    uint32
 
-	imm16, imm16sx uint32
+	Imm16, Imm16sx uint32
 
-	address uint32
+	Address uint32
 }
 
 func NewInstruction(value uint32) Instruction {
 	return Instruction{
-		opcode: value >> 26,
-		rs:     (value >> 21) & 0x1F,
-		rt:     (value >> 16) & 0x1F,
-		rd:     (value >> 11) & 0x1F,
+		Opcode: value >> 26,
+		Rs:     (value >> 21) & 0x1F,
+		Rt:     (value >> 16) & 0x1F,
+		Rd:     (value >> 11) & 0x1F,
 
-		imm16:   value & 0xFFFF,
-		imm16sx: uint32(int16(value & 0xFFFF)),
+		Imm16:   value & 0xFFFF,
+		Imm16sx: uint32(int16(value & 0xFFFF)),
 
-		address: value & 0x03FFFFFF,
+		Address: value & 0x03FFFFFF,
 	}
 }
 
