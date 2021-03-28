@@ -32,6 +32,9 @@ func NewInstruction(value uint32) Instruction {
 		Rt:     (value >> 16) & 0x1F,
 		Rd:     (value >> 11) & 0x1F,
 
+		ShiftAmount: (value >> 6) & 0x1F,
+		Function:    value & 0x3F,
+
 		Imm16:   value & 0xFFFF,
 		Imm16sx: uint32(int16(value & 0xFFFF)),
 

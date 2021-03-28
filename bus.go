@@ -116,15 +116,15 @@ func (bus *Bus) StoreByte(address uint32, value uint8) {
 
 func (bus *Bus) StoreHalfword(address uint32, value uint16) {
 	address, data := bus.Map(address)
-	data[address+1] = uint8(value)
-	data[address] = uint8(value >> 8)
+	data[address+1] = uint8(value >> 8)
+	data[address] = uint8(value)
 }
 
 func (bus *Bus) StoreWord(address uint32, value uint32) {
 	address, data := bus.Map(address)
 
-	data[address+3] = uint8(value)
-	data[address+2] = uint8(value << 8)
-	data[address+1] = uint8(value << 16)
-	data[address] = uint8(value << 24)
+	data[address+3] = uint8(value >> 24)
+	data[address+2] = uint8(value >> 16)
+	data[address+1] = uint8(value >> 8)
+	data[address] = uint8(value)
 }
