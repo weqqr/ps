@@ -55,7 +55,7 @@ func (inst *Instruction) String() string {
 			return fmt.Sprintf("SRLV rd = %X, rt = %X, rs = %d", inst.Rd, inst.Rt, inst.Rs)
 		case 0x07:
 			return fmt.Sprintf("SRAV rd = %X, rt = %X, rs = %d", inst.Rd, inst.Rt, inst.Rs)
- 		case 0x08:
+		case 0x08:
 			return fmt.Sprintf("JR rs = %d", inst.Rs)
 		case 0x09:
 			return fmt.Sprintf("JALR rd = %X, rs = %d", inst.Rd, inst.Rs)
@@ -64,11 +64,11 @@ func (inst *Instruction) String() string {
 		case 0x0D:
 			return "BREAK"
 		case 0x10:
-			return fmt.Sprintf("MFHI rd = %X", inst.Rd)	
+			return fmt.Sprintf("MFHI rd = %X", inst.Rd)
 		case 0x11:
 			return fmt.Sprintf("MTHI rs = %d", inst.Rs)
 		case 0x12:
-			return fmt.Sprintf("MFLO rd = %X", inst.Rd)	
+			return fmt.Sprintf("MFLO rd = %X", inst.Rd)
 		case 0x13:
 			return fmt.Sprintf("MTLO rs = %d", inst.Rs)
 		case 0x18:
@@ -131,7 +131,7 @@ func (inst *Instruction) String() string {
 	case 0x0E:
 		return fmt.Sprintf("XORI rt = %X, rs = %X, Imm = %04X", inst.Rt, inst.Rs, inst.Imm16)
 	case 0x0F:
-		return fmt.Sprintf("LUI rt = %X, Imm = %04X",inst.Rt, inst.Imm16)
+		return fmt.Sprintf("LUI rt = %X, Imm = %04X", inst.Rt, inst.Imm16)
 	case 0x10:
 		return "COP0"
 	case 0x11:
