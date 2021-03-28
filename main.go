@@ -19,17 +19,24 @@ func NewCPU() CPU {
 	}
 }
 
-func (cpu *CPU) Execute(instruction Instruction) {
+func (cpu *CPU) OpLUI(instruction Instruction, bus *Bus) {
+	cpu.GPR[instruction.Rt] = instruction.Imm16 << 16
+}
+
+func (cpu *CPU) Execute(instruction Instruction, bus *Bus) {
+	log.Printf("%#v", instruction)
 	switch instruction.Opcode {
+	case 0x0F:
+		cpu.OpLUI(instruction, bus)
 	default:
 		log.Fatalf("unknown instruction: %02x", instruction.Opcode)
 	}
 }
 
 func (cpu *CPU) Cycle(bus *Bus) {
-	instruction := NewInstruction(bus.ReadWord(cpu.Pc))
+	instruction := NewInstruction(bus.LoadWord(cpu.Pc))
 	cpu.Pc += 4
-	cpu.Execute(instruction)
+	cpu.Execute(instruction, bus)
 }
 
 func main() {

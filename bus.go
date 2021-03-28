@@ -42,23 +42,43 @@ func (bus *Bus) Map(address uint32) (uint32, []byte) {
 	return 0, []byte{}
 }
 
-func (bus *Bus) ReadByte(address uint32) uint8 {
+func (bus *Bus) LoadByte(address uint32) uint8 {
 	address, data := bus.Map(address)
 	return data[address]
 }
 
-func (bus *Bus) ReadHalfword(address uint32) uint16 {
+func (bus *Bus) LoadHalfword(address uint32) uint16 {
 	address, data := bus.Map(address)
 	a := uint16(data[address+1])
 	b := uint16(data[address])
 	return (a << 8) | b
 }
 
-func (bus *Bus) ReadWord(address uint32) uint32 {
+func (bus *Bus) LoadWord(address uint32) uint32 {
 	address, data := bus.Map(address)
 	a := uint32(data[address+3])
 	b := uint32(data[address+2])
 	c := uint32(data[address+1])
 	d := uint32(data[address])
 	return (a << 24) | (b << 16) | (c << 8) | d
+}
+
+func (bus *Bus) StoreByte(address uint32, value uint8) {
+	address, data := bus.Map(address)
+	data[address] = value
+}
+
+func (bus *Bus) StoreHalfword(address uint32, value uint16) {
+	address, data := bus.Map(address)
+	data[address+1] = uint8(value)
+	data[address] = uint8(value >> 8)
+}
+
+func (bus *Bus) StoreWord(address uint32, value uint32) {
+	address, data := bus.Map(address)
+
+	data[address+3] = uint8(value)
+	data[address+2] = uint8(value)
+	data[address+1] = uint8(value)
+	data[address] = uint8(value >> 8)
 }
