@@ -1,5 +1,9 @@
 package main
 
+import (
+	"fmt"
+)
+
 // See https://en.wikipedia.org/wiki/MIPS_architecture#Instruction_formats
 type Instruction struct {
 	// Opcode is primary opcode value
@@ -40,7 +44,7 @@ func (inst *Instruction) String() string {
 	case 0x00:
 		switch inst.Function {
 		case 0x00:
-			return "SLL"
+			return fmt.Sprintf("SLL rd = %X, rt = %X, ShiftAmount = %d", inst.Rd, inst.Rt, inst.ShiftAmount)
 		case 0x02:
 			return "SRL"
 		case 0x03:
@@ -101,7 +105,7 @@ func (inst *Instruction) String() string {
 	case 0x01:
 		return "BcondZ"
 	case 0x02:
-		return "J"
+		return fmt.Sprintf("J target = %X", inst.Address)
 	case 0x03:
 		return "JAL"
 	case 0x04:
@@ -115,7 +119,7 @@ func (inst *Instruction) String() string {
 	case 0x08:
 		return "ADDI"
 	case 0x09:
-		return "ADDIU"
+		return fmt.Sprintf("ADDIU rt = %X, rs = %X, Imm = %04X", inst.Rt, inst.Rs, inst.Imm16)
 	case 0x0A:
 		return "SLTI"
 	case 0x0B:
@@ -123,11 +127,11 @@ func (inst *Instruction) String() string {
 	case 0x0C:
 		return "ANDI"
 	case 0x0D:
-		return "ORI"
+		return fmt.Sprintf("ORI rt = %X, rs = %X, Imm = %04X", inst.Rt, inst.Rs, inst.Imm16)
 	case 0x0E:
 		return "XORI"
 	case 0x0F:
-		return "LUI"
+		return fmt.Sprintf("LUI rt = %X, Imm = %04X",inst.Rt, inst.Imm16)
 	case 0x10:
 		return "COP0"
 	case 0x11:
@@ -157,7 +161,7 @@ func (inst *Instruction) String() string {
 	case 0x2A:
 		return "SWL"
 	case 0x2B:
-		return "SW"
+		return fmt.Sprintf("SW rt = %X, offset = %X, base = %X", inst.Rt, inst.Imm16, inst.Rs)
 	case 0x2E:
 		return "SWR"
 	case 0x30:

@@ -76,7 +76,7 @@ func (cpu *CPU) Execute(instruction Instruction, bus *Bus) {
 
 func (cpu *CPU) Cycle(bus *Bus) {
 	instruction := NewInstruction(bus.LoadWord(cpu.Pc))
-	log.Printf("%08x %#v", cpu.Pc, instruction)
+	log.Printf("%08x %s", cpu.Pc, instruction.String())
 	cpu.Pc = cpu.PcNext
 	cpu.PcNext += 4
 	cpu.Execute(instruction, bus)
