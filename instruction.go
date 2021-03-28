@@ -129,7 +129,7 @@ func (inst *Instruction) String() string {
 	case 0x0D:
 		return fmt.Sprintf("ORI rt = %X, rs = %X, Imm = %04X", inst.Rt, inst.Rs, inst.Imm16)
 	case 0x0E:
-		return "XORI"
+		return fmt.Sprintf("XORI rt = %X, rs = %X, Imm = %04X", inst.Rt, inst.Rs, inst.Imm16)
 	case 0x0F:
 		return fmt.Sprintf("LUI rt = %X, Imm = %04X",inst.Rt, inst.Imm16)
 	case 0x10:
@@ -141,19 +141,19 @@ func (inst *Instruction) String() string {
 	case 0x13:
 		return "COP3"
 	case 0x20:
-		return "LB"
+		return fmt.Sprintf("LB rt = %X, offset = %X, base = %X", inst.Rt, inst.Imm16, inst.Rs)
 	case 0x21:
-		return "LH"
+		return fmt.Sprintf("LH rt = %X, offset = %X, base = %X", inst.Rt, inst.Imm16, inst.Rs)
 	case 0x22:
-		return "LWL"
+		return fmt.Sprintf("LWL rt = %X, offset = %X, base = %X", inst.Rt, inst.Imm16, inst.Rs)
 	case 0x23:
-		return "LW"
+		return fmt.Sprintf("LW rt = %X, offset = %X, base = %X", inst.Rt, inst.Imm16, inst.Rs)
 	case 0x24:
-		return "LBU"
+		return fmt.Sprintf("LBU rt = %X, offset = %X, base = %X", inst.Rt, inst.Imm16, inst.Rs)
 	case 0x25:
-		return "LHU"
+		return fmt.Sprintf("LHU rt = %X, offset = %X, base = %X", inst.Rt, inst.Imm16, inst.Rs)
 	case 0x26:
-		return "LWR"
+		return fmt.Sprintf("LWR rt = %X, offset = %X, base = %X", inst.Rt, inst.Imm16, inst.Rs)
 	case 0x28:
 		return fmt.Sprintf("SB rt = %X, offset = %X, base = %X", inst.Rt, inst.Imm16, inst.Rs)
 	case 0x29:
@@ -163,7 +163,7 @@ func (inst *Instruction) String() string {
 	case 0x2B:
 		return fmt.Sprintf("SW rt = %X, offset = %X, base = %X", inst.Rt, inst.Imm16, inst.Rs)
 	case 0x2E:
-		return "SWR"
+		return fmt.Sprintf("SWR rt = %X, offset = %X, base = %X", inst.Rt, inst.Imm16, inst.Rs)
 	case 0x30:
 		return "LWC0"
 	case 0x31:
