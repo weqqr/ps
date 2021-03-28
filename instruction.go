@@ -40,7 +40,7 @@ func (inst *Instruction) String() string {
 	case 0x00:
 		switch inst.Function {
 		case 0x00:
-			return "SSL"
+			return "SLL"
 		case 0x02:
 			return "SRL"
 		case 0x03:
