@@ -1,5 +1,9 @@
 package main
 
+import (
+	"fmt"
+)
+
 // See https://en.wikipedia.org/wiki/MIPS_architecture#Instruction_formats
 type Instruction struct {
 	// Opcode is primary opcode value
@@ -40,94 +44,94 @@ func (inst *Instruction) String() string {
 	case 0x00:
 		switch inst.Function {
 		case 0x00:
-			return "SLL"
+			return fmt.Sprintf("SLL rd = %X, rt = %X, ShiftAmount = %d", inst.Rd, inst.Rt, inst.ShiftAmount)
 		case 0x02:
-			return "SRL"
+			return fmt.Sprintf("SRL rd = %X, rt = %X, ShiftAmount = %d", inst.Rd, inst.Rt, inst.ShiftAmount)
 		case 0x03:
-			return "SRA"
+			return fmt.Sprintf("SRA rd = %X, rt = %X, ShiftAmount = %d", inst.Rd, inst.Rt, inst.ShiftAmount)
 		case 0x04:
-			return "SLLV"
+			return fmt.Sprintf("SLLV rd = %X, rt = %X, rs = %d", inst.Rd, inst.Rt, inst.Rs)
 		case 0x06:
-			return "SRLV"
+			return fmt.Sprintf("SRLV rd = %X, rt = %X, rs = %d", inst.Rd, inst.Rt, inst.Rs)
 		case 0x07:
-			return "SRAV"
+			return fmt.Sprintf("SRAV rd = %X, rt = %X, rs = %d", inst.Rd, inst.Rt, inst.Rs)
 		case 0x08:
-			return "JR"
+			return fmt.Sprintf("JR rs = %d", inst.Rs)
 		case 0x09:
-			return "JALR"
+			return fmt.Sprintf("JALR rd = %X, rs = %d", inst.Rd, inst.Rs)
 		case 0x0C:
 			return "SYSCALL"
 		case 0x0D:
 			return "BREAK"
 		case 0x10:
-			return "MFHI"
+			return fmt.Sprintf("MFHI rd = %X", inst.Rd)
 		case 0x11:
-			return "MTHI"
+			return fmt.Sprintf("MTHI rs = %d", inst.Rs)
 		case 0x12:
-			return "MFLO"
+			return fmt.Sprintf("MFLO rd = %X", inst.Rd)
 		case 0x13:
-			return "MTLO"
+			return fmt.Sprintf("MTLO rs = %d", inst.Rs)
 		case 0x18:
-			return "MULT"
+			return fmt.Sprintf("MULT rt = %X, rs = %d", inst.Rt, inst.Rs)
 		case 0x19:
-			return "MULTU"
+			return fmt.Sprintf("MULTU rt = %X, rs = %d", inst.Rt, inst.Rs)
 		case 0x1A:
-			return "DIV"
+			return fmt.Sprintf("DIV rt = %X, rs = %d", inst.Rt, inst.Rs)
 		case 0x1B:
-			return "DIVU"
+			return fmt.Sprintf("DIVU rt = %X, rs = %d", inst.Rt, inst.Rs)
 		case 0x20:
-			return "ADD"
+			return fmt.Sprintf("ADD rd = %X, rt = %X, rs = %d", inst.Rd, inst.Rt, inst.Rs)
 		case 0x21:
-			return "ADDU"
+			return fmt.Sprintf("ADDU rd = %X, rt = %X, rs = %d", inst.Rd, inst.Rt, inst.Rs)
 		case 0x22:
-			return "SUB"
+			return fmt.Sprintf("SUB rd = %X, rt = %X, rs = %d", inst.Rd, inst.Rt, inst.Rs)
 		case 0x23:
-			return "SUBU"
+			return fmt.Sprintf("SUBU rd = %X, rt = %X, rs = %d", inst.Rd, inst.Rt, inst.Rs)
 		case 0x24:
-			return "AND"
+			return fmt.Sprintf("AND rd = %X, rt = %X, rs = %d", inst.Rd, inst.Rt, inst.Rs)
 		case 0x25:
-			return "OR"
+			return fmt.Sprintf("OR rd = %X, rt = %X, rs = %d", inst.Rd, inst.Rt, inst.Rs)
 		case 0x26:
-			return "XOR"
+			return fmt.Sprintf("XOR rd = %X, rt = %X, rs = %d", inst.Rd, inst.Rt, inst.Rs)
 		case 0x27:
-			return "NOR"
+			return fmt.Sprintf("NOR rd = %X, rt = %X, rs = %d", inst.Rd, inst.Rt, inst.Rs)
 		case 0x2A:
-			return "SLT"
+			return fmt.Sprintf("SLT rd = %X, rt = %X, rs = %d", inst.Rd, inst.Rt, inst.Rs)
 		case 0x2B:
-			return "SLTU"
+			return fmt.Sprintf("SLTU rd = %X, rt = %X, rs = %d", inst.Rd, inst.Rt, inst.Rs)
 		default:
 			return "N/A"
 		}
 	case 0x01:
 		return "BcondZ"
 	case 0x02:
-		return "J"
+		return fmt.Sprintf("J target = %X", inst.Address)
 	case 0x03:
-		return "JAL"
+		return fmt.Sprintf("JAL target = %X", inst.Address)
 	case 0x04:
-		return "BEQ"
+		return fmt.Sprintf("BEQ rt = %d, rs = %X, offset = %X", inst.Rt, inst.Rs, inst.Imm16)
 	case 0x05:
-		return "BNE"
+		return fmt.Sprintf("BNE rt = %d, rs = %X, offset = %X", inst.Rt, inst.Rs, inst.Imm16)
 	case 0x06:
-		return "BLEZ"
+		return fmt.Sprintf("BLEZ rs = %d, offset = %X", inst.Rs, inst.Imm16)
 	case 0x07:
-		return "BGTZ"
+		return fmt.Sprintf("BGTZ rs = %d, offset = %X", inst.Rs, inst.Imm16)
 	case 0x08:
-		return "ADDI"
+		return fmt.Sprintf("ADDI rt = %X, rs = %X, Imm = %04X", inst.Rt, inst.Rs, inst.Imm16)
 	case 0x09:
-		return "ADDIU"
+		return fmt.Sprintf("ADDIU rt = %X, rs = %X, Imm = %04X", inst.Rt, inst.Rs, inst.Imm16)
 	case 0x0A:
-		return "SLTI"
+		return fmt.Sprintf("SLTI rt = %X, rs = %X, Imm = %04X", inst.Rt, inst.Rs, inst.Imm16)
 	case 0x0B:
-		return "SLTIU"
+		return fmt.Sprintf("SLTIU rt = %X, rs = %X, Imm = %04X", inst.Rt, inst.Rs, inst.Imm16)
 	case 0x0C:
-		return "ANDI"
+		return fmt.Sprintf("ANDI rt = %X, rs = %X, Imm = %04X", inst.Rt, inst.Rs, inst.Imm16)
 	case 0x0D:
-		return "ORI"
+		return fmt.Sprintf("ORI rt = %X, rs = %X, Imm = %04X", inst.Rt, inst.Rs, inst.Imm16)
 	case 0x0E:
-		return "XORI"
+		return fmt.Sprintf("XORI rt = %X, rs = %X, Imm = %04X", inst.Rt, inst.Rs, inst.Imm16)
 	case 0x0F:
-		return "LUI"
+		return fmt.Sprintf("LUI rt = %X, Imm = %04X", inst.Rt, inst.Imm16)
 	case 0x10:
 		return "COP0"
 	case 0x11:
@@ -137,29 +141,29 @@ func (inst *Instruction) String() string {
 	case 0x13:
 		return "COP3"
 	case 0x20:
-		return "LB"
+		return fmt.Sprintf("LB rt = %X, offset = %X, base = %X", inst.Rt, inst.Imm16, inst.Rs)
 	case 0x21:
-		return "LH"
+		return fmt.Sprintf("LH rt = %X, offset = %X, base = %X", inst.Rt, inst.Imm16, inst.Rs)
 	case 0x22:
-		return "LWL"
+		return fmt.Sprintf("LWL rt = %X, offset = %X, base = %X", inst.Rt, inst.Imm16, inst.Rs)
 	case 0x23:
-		return "LW"
+		return fmt.Sprintf("LW rt = %X, offset = %X, base = %X", inst.Rt, inst.Imm16, inst.Rs)
 	case 0x24:
-		return "LBU"
+		return fmt.Sprintf("LBU rt = %X, offset = %X, base = %X", inst.Rt, inst.Imm16, inst.Rs)
 	case 0x25:
-		return "LHU"
+		return fmt.Sprintf("LHU rt = %X, offset = %X, base = %X", inst.Rt, inst.Imm16, inst.Rs)
 	case 0x26:
-		return "LWR"
+		return fmt.Sprintf("LWR rt = %X, offset = %X, base = %X", inst.Rt, inst.Imm16, inst.Rs)
 	case 0x28:
-		return "SB"
+		return fmt.Sprintf("SB rt = %X, offset = %X, base = %X", inst.Rt, inst.Imm16, inst.Rs)
 	case 0x29:
-		return "SH"
+		return fmt.Sprintf("SH rt = %X, offset = %X, base = %X", inst.Rt, inst.Imm16, inst.Rs)
 	case 0x2A:
-		return "SWL"
+		return fmt.Sprintf("SWL rt = %X, offset = %X, base = %X", inst.Rt, inst.Imm16, inst.Rs)
 	case 0x2B:
-		return "SW"
+		return fmt.Sprintf("SW rt = %X, offset = %X, base = %X", inst.Rt, inst.Imm16, inst.Rs)
 	case 0x2E:
-		return "SWR"
+		return fmt.Sprintf("SWR rt = %X, offset = %X, base = %X", inst.Rt, inst.Imm16, inst.Rs)
 	case 0x30:
 		return "LWC0"
 	case 0x31:
