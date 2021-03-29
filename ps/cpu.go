@@ -114,7 +114,7 @@ func (cpu *CPU) ANDI(instruction Instruction, bus *Bus) {
 
 func (cpu *CPU) BLEZ(instruction Instruction, bus *Bus) {
 	instruction.Address = instruction.Imm16 << 2
-	if (cpu.GPR[instruction.Rs] >> 31) == 1 || cpu.GPR[instruction.Rs] == 0x00000000 {
+	if (cpu.GPR[instruction.Rs] >> 31) == 1 || cpu.GPR[instruction.Rs] == 0 {
 		cpu.PcNext += instruction.Address
 	}
 }
@@ -153,15 +153,15 @@ func (cpu *CPU) BGEZAL(instruction Instruction, bus *Bus) {
 
 func (cpu *CPU) SLTI(instruction Instruction, bus *Bus) {
 	if cpu.GPR[instruction.Rs] < instruction.Imm16 {
-		cpu.GPR[instruction.Rd] = 0x00000001
+		cpu.GPR[instruction.Rd] = 1
 	} else {
-		cpu.GPR[instruction.Rd] = 0x00000000
+		cpu.GPR[instruction.Rd] = 0
 	}
 }
 
 func (cpu *CPU) BGTZ(instruction Instruction, bus *Bus) {
 	instruction.Address = instruction.Imm16 << 2
-	if (cpu.GPR[instruction.Rs] >> 31) == 0 && cpu.GPR[instruction.Rs] != 0x00000000 {
+	if (cpu.GPR[instruction.Rs] >> 31) == 0 && cpu.GPR[instruction.Rs] != 0 {
 		cpu.PcNext += instruction.Address
 	}
 }
@@ -174,11 +174,15 @@ func (cpu *CPU) XORI(instruction Instruction, bus *Bus) {
 	cpu.GPR[instruction.Rt] = cpu.GPR[instruction.Rs] ^ instruction.Imm16
 }
 
+func (cpu *CPU) OR(instruction Instruction, bus *Bus) {
+	cpu.GPR[instruction.Rd] = cpu.GPR[instruction.Rs] | cpu.GPR[instruction.Rt]
+}
+
 func (cpu *CPU) SLTIU(instruction Instruction, bus *Bus) {
 	if (cpu.GPR[instruction.Rs] >> 1) < (instruction.Imm16 << 2) {
-		cpu.GPR[instruction.Rd] = 0x00000001
+		cpu.GPR[instruction.Rd] = 1
 	} else {
-		cpu.GPR[instruction.Rd] = 0x00000000
+		cpu.GPR[instruction.Rd] = 0
 	}
 }
 
@@ -196,6 +200,8 @@ func (cpu *CPU) Execute(instruction Instruction, bus *Bus) {
 		switch instruction.Function {
 		case 0x00:
 			cpu.SLL(instruction, bus)
+		case 0x25:
+			cpu.OR(instruction, bus)
 		default:
 			log.Fatalf("unknown special instruction: %02x", instruction.Function)
 		}
@@ -278,7 +284,7 @@ func (cpu *CPU) Execute(instruction Instruction, bus *Bus) {
 
 func (cpu *CPU) Cycle(bus *Bus) {
 	instruction := NewInstruction(bus.LoadWord(cpu.Pc))
-	log.Printf("%08x %#v", cpu.Pc, instruction)
+	log.Printf("%08x %s", cpu.Pc, instruction.String())
 	cpu.Pc = cpu.PcNext
 	cpu.PcNext += 4
 	cpu.Execute(instruction, bus)
