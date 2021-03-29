@@ -56,22 +56,58 @@ func NewGTE() GTE {
 	return GTE{}
 }
 
+// GTEParameters contains flags and indices required by certain operations
 type GTEParameters struct {
-	SF               bool
+	// Shift indicates amount of bits fractional values should be shifted right
+	Shift uint32
+
+	// LM indicates if results should be saturated (i. e. clamped to 0..0x7FFF)
+	LM bool
+
+	// MVMVAMatrix, MVMVAVector and MVMVATranslation are 2-bit values that
+	// select Matrix, Vector and Translation vector for MVMVA (matrix-vector
+	// multiplication with translation vector addition)
 	MVMVAMatrix      uint32
 	MVMVAVector      uint32
 	MVMVATranslation uint32
-	LM               bool
 }
 
 func NewGTEParameters(instruction uint32) GTEParameters {
+	var shift uint32 = 0
+	if ((instruction >> 19) & 0x1) == 1 {
+		shift = 12
+	}
+
 	return GTEParameters{
-		SF:               (instruction >> 19) == 1,
+		Shift:            shift,
+		LM:               ((instruction >> 10) & 0x1) == 1,
 		MVMVAMatrix:      (instruction >> 17) & 0x3,
 		MVMVAVector:      (instruction >> 15) & 0x3,
 		MVMVATranslation: (instruction >> 13) & 0x3,
-		LM:               (instruction >> 10) == 1,
 	}
+}
+
+func saturate(value int16) int16 {
+	if value < 0 {
+		return 0
+	}
+	return value
+}
+
+func (g *GTE) NCLIP() {
+	g.MAC0 = int32(g.SX0*g.SY1 + g.SX1*g.SY2 + g.SX2*g.SY0 - g.SX0*g.SY2 - g.SX1*g.SY0 - g.SX2*g.SY1)
+}
+
+func (g *GTE) OP(p GTEParameters) {
+	D1 := g.RT1.X
+	D2 := g.RT2.Y
+	D3 := g.RT3.Z
+
+	g.MAC1 = (g.IR.Z*D2 - g.IR.Y*D3) >> p.Shift
+	g.MAC2 = (g.IR.X*D3 - g.IR.Z*D1) >> p.Shift
+	g.MAC3 = (g.IR.Y*D1 - g.IR.X*D2) >> p.Shift
+
+	g.IR.X, g.IR.Y, g.IR.Z = g.MAC1, g.MAC2, g.MAC3
 }
 
 func (g *GTE) MVMVA(p GTEParameters) {
@@ -81,17 +117,29 @@ func (g *GTE) MVMVA(p GTEParameters) {
 	v := []Vector3{g.V0, g.V1, g.V2, g.IR}[p.MVMVAVector]
 	t := []Vector3{g.TR, g.BK, g.FC, ZeroVector3}[p.MVMVATranslation]
 
-	shift := 0
-	if p.SF {
-		shift = 12
-	}
-	g.MAC1 = (t.X*0x1000 + m1.X*v.X + m1.Y*v.X + m1.Z*v.X) >> shift
-	g.MAC2 = (t.Y*0x1000 + m2.X*v.Y + m2.Y*v.Y + m2.Z*v.Y) >> shift
-	g.MAC3 = (t.Z*0x1000 + m3.X*v.Z + m3.Y*v.Z + m3.Z*v.Z) >> shift
+	g.MAC1 = (t.X*0x1000 + m1.X*v.X + m1.Y*v.X + m1.Z*v.X) >> p.Shift
+	g.MAC2 = (t.Y*0x1000 + m2.X*v.Y + m2.Y*v.Y + m2.Z*v.Y) >> p.Shift
+	g.MAC3 = (t.Z*0x1000 + m3.X*v.Z + m3.Y*v.Z + m3.Z*v.Z) >> p.Shift
 
-	g.IR.X = g.MAC1
-	g.IR.Y = g.MAC2
-	g.IR.Z = g.MAC3
+	g.IR.X, g.IR.Y, g.IR.Z = g.MAC1, g.MAC2, g.MAC3
+}
+
+func (g *GTE) SQR(p GTEParameters) {
+	g.MAC1 = (g.TR.X * g.TR.X) >> p.Shift
+	g.MAC2 = (g.TR.Y * g.TR.Y) >> p.Shift
+	g.MAC3 = (g.TR.Z * g.TR.Z) >> p.Shift
+
+	g.IR.X, g.IR.Y, g.IR.Z = g.MAC1, g.MAC2, g.MAC3
+}
+
+func (g *GTE) AVSZ3() {
+	g.MAC0 = int32(g.ZSF3 * int16(g.SZ1+g.SZ2+g.SZ3))
+	g.OTZ = uint16(saturate(int16(g.MAC0 / 0x1000)))
+}
+
+func (g *GTE) AVSZ4() {
+	g.MAC0 = int32(g.ZSF4 * int16(g.SZ0+g.SZ1+g.SZ2+g.SZ3))
+	g.OTZ = uint16(saturate(int16(g.MAC0 / 0x1000)))
 }
 
 func (g *GTE) Execute(instruction Instruction) {
@@ -101,9 +149,9 @@ func (g *GTE) Execute(instruction Instruction) {
 	case 0x01:
 		// g.RTPS(parameters)
 	case 0x06:
-		// g.NCLIP()
+		g.NCLIP()
 	case 0x0C:
-		// g.OP()
+		g.OP(parameters)
 	case 0x10:
 		// g.DPCS()
 	case 0x11:
@@ -125,15 +173,15 @@ func (g *GTE) Execute(instruction Instruction) {
 	case 0x20:
 		// g.NCT()
 	case 0x28:
-		// g.SQR()
+		g.SQR(parameters)
 	case 0x29:
 		// g.DCPL()
 	case 0x2A:
 		// g.DPCT()
 	case 0x2D:
-		// g.AVSZ3()
+		g.AVSZ3()
 	case 0x2E:
-		// g.AVSZ4()
+		g.AVSZ4()
 	case 0x30:
 		// g.RTPT()
 	case 0x3D:
