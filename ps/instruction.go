@@ -6,6 +6,9 @@ import (
 
 // See https://en.wikipedia.org/wiki/MIPS_architecture#Instruction_formats
 type Instruction struct {
+	// Raw contains raw, unparsed instruction
+	Raw uint32
+
 	// Opcode is primary opcode value
 	Opcode uint32
 
@@ -27,6 +30,8 @@ type Instruction struct {
 
 func NewInstruction(value uint32) Instruction {
 	return Instruction{
+		Raw: value,
+
 		Opcode: value >> 26,
 		Rs:     (value >> 21) & 0x1F,
 		Rt:     (value >> 16) & 0x1F,
