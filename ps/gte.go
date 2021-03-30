@@ -94,6 +94,39 @@ func saturate(value int16) int16 {
 	return value
 }
 
+func (g *GTE) DCPL() {
+	/*
+	[MAC1, MAC2, MAC3] = [R * IR1, G * IR2, B * IR3] SHL 4
+	[MAC1, MAC2, MAC3] = MAC + (FC - MAC) * IRO
+	[MAC1, MAC2, MAC3] = [MAC1, MAC2, MAC3] SAR (sf * 12)
+	Color FIFO = [MAC1 / 16, MAC2 / 16, MAC3 / 16, CODE], [IR1, IR2, IR3] = [MAC1, MAC2, MAC3]
+	*/
+	[g.MAC1, g.MAC2, g.MAC3] = [g.R * g.IR1, g.G * g.IR2, g.B * g.IR3] << 4
+	[g.MAC1, g.MAC2, g.MAC3] = g.MAC + (g.FC - g.MAC) * g.IR0
+	[g.MAC1, g.MAC2, g.MAC3] = [MAC1, MAC2, MAC3] >> (g.sf * 12)
+	Color FIFO = [g.MAC1 / 16, g.MAC2 / 16, MAC3 / 16, g.CODE]
+	[g.IR1, g.IR2, g.IR3] = [g.MAC1, g.MAC2, g.MAC3]
+}
+
+func (g *GTE) DPCS() {
+	[g.MAC1, g.MAC2, g.MAC3] = [g.R, g.G, g.B] >> 16
+	[g.MAC1, g.MAC2, g.MAC3] = g.MAC + (g.FC - g.MAC) * g.IR0
+	[g.MAC1, g.MAC2, g.MAC3] = [MAC1, MAC2, MAC3] >> (g.sf * 12)
+	Color FIFO = [g.MAC1 / 16, g.MAC2 / 16, MAC3 / 16, g.CODE]
+	[g.IR1, g.IR2, g.IR3] = [g.MAC1, g.MAC2, g.MAC3]
+}
+
+func (g *GTE) DPCT() {
+	[g.MAC1, g.MAC2, g.MAC3] = [g.R, g.G, g.B] >> 16
+	[g.MAC1, g.MAC2, g.MAC3] = g.MAC + (g.FC - g.MAC) * g.IR0
+	[g.MAC1, g.MAC2, g.MAC3] = [MAC1, MAC2, MAC3] >> (g.sf * 12)
+	Color FIFO = [g.MAC1 / 16, g.MAC2 / 16, MAC3 / 16, g.CODE]
+	[g.IR1, g.IR2, g.IR3] = [g.MAC1, g.MAC2, g.MAC3]
+}
+
+
+
+
 func (g *GTE) NCLIP() {
 	g.MAC0 = int32(g.SX0*g.SY1 + g.SX1*g.SY2 + g.SX2*g.SY0 - g.SX0*g.SY2 - g.SX1*g.SY0 - g.SX2*g.SY1)
 }
