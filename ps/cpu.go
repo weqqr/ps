@@ -13,6 +13,10 @@ type CPU struct {
 	Pc uint32
 	// PcNext is a next program counter
 	PcNext uint32
+	// LO contains quotient
+	LO uint32
+	// HI contains the remainder
+	HI uint32
 }
 
 func NewCPU() CPU {
@@ -68,35 +72,41 @@ func (cpu *CPU) BREAK(instruction Instruction, bus *Bus) {
 }
 
 func (cpu *CPU) MFHI(instruction Instruction, bus *Bus) {
-	//TODO implementation of the quotient and remainder
+	cpu.HI = cpu.GPR[instruction.Rs]
 }
 
 func (cpu *CPU) MTHI(instruction Instruction, bus *Bus) {
-	//TODO implementation of the quotient and remainder
+
 }
 
 func (cpu *CPU) MFLO(instruction Instruction, bus *Bus) {
-	//TODO implementation of the quotient and remainder
+	cpu.GPR[instruction.Rd] = cpu.LO
 }
 
 func (cpu *CPU) MTLO(instruction Instruction, bus *Bus) {
-	//TODO implementation of the quotient and remainder
+	cpu.LO = cpu.GPR[instruction.Rs]
 }
 
 func (cpu *CPU) MULT(instruction Instruction, bus *Bus) {
-	//TODO implementation of the quotient and remainder
+	temp := uint64(cpu.GPR[instruction.Rs] * cpu.GPR[instruction.Rt])
+	cpu.LO = uint32(temp << 32)
+	cpu.HI = uint32(temp >> 32)
 }
 
 func (cpu *CPU) MULTU(instruction Instruction, bus *Bus) {
-	//TODO implementation of the quotient and remainder
+	temp := uint64((cpu.GPR[instruction.Rs] >> 1) * (cpu.GPR[instruction.Rt] >> 1))
+	cpu.LO = uint32(temp << 32)
+	cpu.HI = uint32(temp >> 32)
 }
 
 func (cpu *CPU) DIV(instruction Instruction, bus *Bus) {
-	//TODO implementation of the quotient and remainder
+	cpu.LO = cpu.GPR[instruction.Rs] / cpu.GPR[instruction.Rt]
+	cpu.HI = cpu.GPR[instruction.Rs] % cpu.GPR[instruction.Rt]
 }
 
 func (cpu *CPU) DIVU(instruction Instruction, bus *Bus) {
-	//TODO implementation of the quotient and remainder
+	cpu.LO = (cpu.GPR[instruction.Rs] >> 1) / (cpu.GPR[instruction.Rt] >> 1)
+	cpu.HI = (cpu.GPR[instruction.Rs] >> 1) % (cpu.GPR[instruction.Rt] >> 1)
 }
 
 func (cpu *CPU) ADD(instruction Instruction, bus *Bus) {
@@ -340,10 +350,10 @@ func (cpu *CPU) Execute(instruction Instruction, bus *Bus) {
 			cpu.JR(instruction, bus)
 		case 0x09:
 			cpu.JALR(instruction, bus)
-		case 0x0C:
-			cpu.SYSCALL(instruction, bus)
-		case 0x0D:
-			cpu.BREAK(instruction, bus)
+		//case 0x0C:
+		//	cpu.SYSCALL(instruction, bus)
+		//case 0x0D:
+		//	cpu.BREAK(instruction, bus)
 		case 0x10:
 			cpu.MFHI(instruction, bus)
 		case 0x11:
@@ -426,41 +436,41 @@ func (cpu *CPU) Execute(instruction Instruction, bus *Bus) {
 		cpu.LUI(instruction, bus)
 	case 0x10:
 		switch instruction.Rs {
-		case 0x0:
-			cpu.MFC(instruction, bus)
-		case 0x2:
-			cpu.CFC(instruction, bus)
-		case 0x4:
-			cpu.MTC(instruction, bus)
-		case 0x6:
-			cpu.CTC(instruction, bus)
+		//case 0x0:
+		//	cpu.MFC(instruction, bus)
+		//case 0x2:
+		//	cpu.CFC(instruction, bus)
+		//case 0x4:
+		//	cpu.MTC(instruction, bus)
+		//case 0x6:
+		//	cpu.CTC(instruction, bus)
 		default:
 			log.Fatalf("unknown coprocessor opcode instruction: %02x", instruction.Opcode)
 		}
-	case 0x20:
-		cpu.LB(instruction, bus)
-	case 0x21:
-		cpu.LH(instruction, bus)
-	case 0x23:
-		cpu.LW(instruction, bus)
-	case 0x22:
-		cpu.LWL(instruction, bus)
-	case 0x24:
-		cpu.LBU(instruction, bus)
-	case 0x25:
-		cpu.LHU(instruction, bus)
-	case 0x26:
-		cpu.LWR(instruction, bus)
-	case 0x28:
-		cpu.SB(instruction, bus)
-	case 0x29:
-		cpu.SH(instruction, bus)
-	case 0x2A:
-		cpu.SWL(instruction, bus)
+	//case 0x20:
+	//	cpu.LB(instruction, bus)
+	//case 0x21:
+	//	cpu.LH(instruction, bus)
+	//case 0x23:
+	//	cpu.LW(instruction, bus)
+	//case 0x22:
+	//	cpu.LWL(instruction, bus)
+	//case 0x24:
+	//	cpu.LBU(instruction, bus)
+	//case 0x25:
+	//	cpu.LHU(instruction, bus)
+	//case 0x26:
+	//	cpu.LWR(instruction, bus)
+	//case 0x28:
+	//	cpu.SB(instruction, bus)
+	//case 0x29:
+	//	cpu.SH(instruction, bus)
+	//case 0x2A:
+	//	cpu.SWL(instruction, bus)
 	case 0x2B:
 		cpu.SW(instruction, bus)
-	case 0x2E:
-		cpu.SWR(instruction, bus)
+	//case 0x2E:
+	//	cpu.SWR(instruction, bus)
 	default:
 		log.Fatalf("unknown primary instruction: %02x", instruction.Opcode)
 	}
