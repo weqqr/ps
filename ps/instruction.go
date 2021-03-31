@@ -42,7 +42,7 @@ func NewInstruction(value uint32) Instruction {
 	}
 }
 
-func (inst *Instruction) String() string {
+func (inst Instruction) String() string {
 	switch inst.Opcode {
 	case 0x00:
 		switch inst.Function {
