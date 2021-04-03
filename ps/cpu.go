@@ -5,9 +5,10 @@ import (
 )
 
 type CPU struct {
-	// GPR - General Purpose Registers.
-	// The content of GetGPR(0] is always zero.
-	// Attempts to alter the content of GetGPR(0] have no effect.
+	// GPR is a General Purpose Registers.
+	// The content of GPR[0] is always zero.
+	// Attempts to alter the content of GPR[0] have no effect.
+	// GPRNext is ...
 	GPR, GPRNext []uint32
 
 	// LoadDelaySlot emulates MIPS load delay
@@ -18,9 +19,8 @@ type CPU struct {
 	Pc, PcNext uint32
 
 	// LO contains quotient
-	LO uint32
 	// HI contains the remainder
-	HI uint32
+	LO, HI uint32
 }
 
 func NewCPU() CPU {
@@ -87,11 +87,11 @@ func (cpu *CPU) BREAK(instruction Instruction, bus *Bus) {
 }
 
 func (cpu *CPU) MFHI(instruction Instruction, bus *Bus) {
-
+	cpu.SetGPR(instruction.Rd, cpu.HI)
 }
 
 func (cpu *CPU) MTHI(instruction Instruction, bus *Bus) {
-	cpu.SetGPR(instruction.Rs, cpu.HI)
+	cpu.SetGPR(cpu.HI, instruction.Rs)
 }
 
 func (cpu *CPU) MFLO(instruction Instruction, bus *Bus) {
@@ -297,11 +297,17 @@ func (cpu *CPU) CTC(instruction Instruction, bus *Bus) {
 }
 
 func (cpu *CPU) LB(instruction Instruction, bus *Bus) {
-	//TODO Later
+	address := instruction.Imm16 + cpu.GetGPR(instruction.Rs)
+	value := bus.LoadByte(address)
+	cpu.LoadDelaySlot = instruction.Rt
+	cpu.LoadDelayValue = uint32(int8(value))
 }
 
 func (cpu *CPU) LH(instruction Instruction, bus *Bus) {
-	//TODO Later
+	address := instruction.Imm16 + cpu.GetGPR(instruction.Rs)
+	value := bus.LoadByte(address)
+	cpu.LoadDelaySlot = instruction.Rt
+	cpu.LoadDelayValue = uint32(int16(value))
 }
 
 func (cpu *CPU) LW(instruction Instruction, bus *Bus) {
@@ -316,11 +322,17 @@ func (cpu *CPU) LWL(instruction Instruction, bus *Bus) {
 }
 
 func (cpu *CPU) LBU(instruction Instruction, bus *Bus) {
-	//TODO Later
+	address := instruction.Imm16 + cpu.GetGPR(instruction.Rs)
+	value := bus.LoadByte(address)
+	cpu.LoadDelaySlot = instruction.Rt
+	cpu.LoadDelayValue = uint32(0x000000 & int8(value))
 }
 
 func (cpu *CPU) LHU(instruction Instruction, bus *Bus) {
-	//TODO Later
+	address := instruction.Imm16 + cpu.GetGPR(instruction.Rs)
+	value := bus.LoadByte(address)
+	cpu.LoadDelaySlot = instruction.Rt
+	cpu.LoadDelayValue = uint32(0x0000 & int16(value))
 }
 
 func (cpu *CPU) LWR(instruction Instruction, bus *Bus) {
@@ -328,11 +340,13 @@ func (cpu *CPU) LWR(instruction Instruction, bus *Bus) {
 }
 
 func (cpu *CPU) SB(instruction Instruction, bus *Bus) {
-	//TODO Later
+	address := instruction.Imm16 + cpu.GetGPR(instruction.Rs)
+	bus.StoreByte(address, uint8(cpu.GetGPR(instruction.Rt)&0xFF))
 }
 
 func (cpu *CPU) SH(instruction Instruction, bus *Bus) {
-	//TODO Later
+	address := instruction.Imm16 + cpu.GetGPR(instruction.Rs)
+	bus.StoreHalfword(address, uint16(cpu.GetGPR(instruction.Rt)&0xFFFF))
 }
 
 func (cpu *CPU) SWL(instruction Instruction, bus *Bus) {

@@ -185,7 +185,5 @@ func (inst Instruction) String() string {
 		return "SWC3"
 	default:
 		return "N/A"
-
 	}
-
 }
