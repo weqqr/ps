@@ -14,6 +14,8 @@ func assertEqual(t *testing.T, actual interface{}, expected interface{}) {
 func TestInstructionDecoding(t *testing.T) {
 	instruction := NewInstruction(0x1234ABCD)
 	assertEqual(t, instruction, Instruction{
+		Raw: 0x1234ABCD,
+
 		Opcode: 0x4,
 
 		Rs: 0x11,
