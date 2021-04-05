@@ -47,126 +47,122 @@ func (inst Instruction) String() string {
 	case 0x00:
 		switch inst.Function {
 		case 0x00:
-			return fmt.Sprintf("SLL rd = %X, rt = %X, ShiftAmount = %d", inst.Rd, inst.Rt, inst.ShiftAmount)
+			return fmt.Sprintf("SLL     $%d, $%d, %d", inst.Rd, inst.Rt, inst.ShiftAmount)
 		case 0x02:
-			return fmt.Sprintf("SRL rd = %X, rt = %X, ShiftAmount = %d", inst.Rd, inst.Rt, inst.ShiftAmount)
+			return fmt.Sprintf("SRL     $%d, $%d, %d", inst.Rd, inst.Rt, inst.ShiftAmount)
 		case 0x03:
-			return fmt.Sprintf("SRA rd = %X, rt = %X, ShiftAmount = %d", inst.Rd, inst.Rt, inst.ShiftAmount)
+			return fmt.Sprintf("SRA     $%d, $%d, %d", inst.Rd, inst.Rt, inst.ShiftAmount)
 		case 0x04:
-			return fmt.Sprintf("SLLV rd = %X, rt = %X, rs = %d", inst.Rd, inst.Rt, inst.Rs)
+			return fmt.Sprintf("SLLV    $%d, $%d, $%d", inst.Rd, inst.Rt, inst.Rs)
 		case 0x06:
-			return fmt.Sprintf("SRLV rd = %X, rt = %X, rs = %d", inst.Rd, inst.Rt, inst.Rs)
+			return fmt.Sprintf("SRLV    $%d, $%d, $%d", inst.Rd, inst.Rt, inst.Rs)
 		case 0x07:
-			return fmt.Sprintf("SRAV rd = %X, rt = %X, rs = %d", inst.Rd, inst.Rt, inst.Rs)
+			return fmt.Sprintf("SRAV    $%d, $%d, $%d", inst.Rd, inst.Rt, inst.Rs)
 		case 0x08:
-			return fmt.Sprintf("JR rs = %d", inst.Rs)
+			return fmt.Sprintf("JR      $%d", inst.Rs)
 		case 0x09:
-			return fmt.Sprintf("JALR rd = %X, rs = %d", inst.Rd, inst.Rs)
+			return fmt.Sprintf("JALR    $%d, $%d", inst.Rd, inst.Rs)
 		case 0x0C:
 			return "SYSCALL"
 		case 0x0D:
 			return "BREAK"
 		case 0x10:
-			return fmt.Sprintf("MFHI rd = %X", inst.Rd)
+			return fmt.Sprintf("MFHI    $%d", inst.Rd)
 		case 0x11:
-			return fmt.Sprintf("MTHI rs = %d", inst.Rs)
+			return fmt.Sprintf("MTHI    $%d", inst.Rs)
 		case 0x12:
-			return fmt.Sprintf("MFLO rd = %X", inst.Rd)
+			return fmt.Sprintf("MFLO    $%d", inst.Rd)
 		case 0x13:
-			return fmt.Sprintf("MTLO rs = %d", inst.Rs)
+			return fmt.Sprintf("MTLO    $%d", inst.Rs)
 		case 0x18:
-			return fmt.Sprintf("MULT rt = %X, rs = %d", inst.Rt, inst.Rs)
+			return fmt.Sprintf("MULT    $%d, $%d", inst.Rt, inst.Rs)
 		case 0x19:
-			return fmt.Sprintf("MULTU rt = %X, rs = %d", inst.Rt, inst.Rs)
+			return fmt.Sprintf("MULTU   $%d, $%d", inst.Rt, inst.Rs)
 		case 0x1A:
-			return fmt.Sprintf("DIV rt = %X, rs = %d", inst.Rt, inst.Rs)
+			return fmt.Sprintf("DIV     $%d, $%d", inst.Rt, inst.Rs)
 		case 0x1B:
-			return fmt.Sprintf("DIVU rt = %X, rs = %d", inst.Rt, inst.Rs)
+			return fmt.Sprintf("DIVU    $%d, $%d", inst.Rt, inst.Rs)
 		case 0x20:
-			return fmt.Sprintf("ADD rd = %X, rt = %X, rs = %d", inst.Rd, inst.Rt, inst.Rs)
+			return fmt.Sprintf("ADD     $%d, $%d, $%d", inst.Rd, inst.Rs, inst.Rt)
 		case 0x21:
-			return fmt.Sprintf("ADDU rd = %X, rt = %X, rs = %d", inst.Rd, inst.Rt, inst.Rs)
+			return fmt.Sprintf("ADDU    $%d, $%d, $%d", inst.Rd, inst.Rs, inst.Rt)
 		case 0x22:
-			return fmt.Sprintf("SUB rd = %X, rt = %X, rs = %d", inst.Rd, inst.Rt, inst.Rs)
+			return fmt.Sprintf("SUB     $%d, $%d, $%d", inst.Rd, inst.Rt, inst.Rs)
 		case 0x23:
-			return fmt.Sprintf("SUBU rd = %X, rt = %X, rs = %d", inst.Rd, inst.Rt, inst.Rs)
+			return fmt.Sprintf("SUBU    $%d, $%d, $%d", inst.Rd, inst.Rs, inst.Rt)
 		case 0x24:
-			return fmt.Sprintf("AND rd = %X, rt = %X, rs = %d", inst.Rd, inst.Rt, inst.Rs)
+			return fmt.Sprintf("AND     $%d, $%d, $%d", inst.Rd, inst.Rs, inst.Rt)
 		case 0x25:
-			return fmt.Sprintf("OR rd = %X, rt = %X, rs = %d", inst.Rd, inst.Rt, inst.Rs)
+			return fmt.Sprintf("OR      $%d, $%d, $%d", inst.Rd, inst.Rs, inst.Rt)
 		case 0x26:
-			return fmt.Sprintf("XOR rd = %X, rt = %X, rs = %d", inst.Rd, inst.Rt, inst.Rs)
+			return fmt.Sprintf("XOR     $%d, $%d, $%d", inst.Rd, inst.Rs, inst.Rt)
 		case 0x27:
-			return fmt.Sprintf("NOR rd = %X, rt = %X, rs = %d", inst.Rd, inst.Rt, inst.Rs)
+			return fmt.Sprintf("NOR     $%d, $%d, $%d", inst.Rd, inst.Rs, inst.Rt)
 		case 0x2A:
-			return fmt.Sprintf("SLT rd = %X, rt = %X, rs = %d", inst.Rd, inst.Rt, inst.Rs)
+			return fmt.Sprintf("SLT     $%d, $%d, $%d", inst.Rd, inst.Rs, inst.Rt)
 		case 0x2B:
-			return fmt.Sprintf("SLTU rd = %X, rt = %X, rs = %d", inst.Rd, inst.Rt, inst.Rs)
+			return fmt.Sprintf("SLTU    $%d, $%d, $%d", inst.Rd, inst.Rs, inst.Rt)
 		default:
-			return "N/A"
+			return fmt.Sprintf("Invalid SPECIAL opcode: %02Xh", inst.Function)
 		}
 	case 0x01:
-		return "BcondZ"
+		return fmt.Sprintf("Invalid BCOND opcode: %02Xh", inst.Rs)
 	case 0x02:
-		return fmt.Sprintf("J target = %X", inst.Address)
+		return fmt.Sprintf("J       %08Xh", inst.Address)
 	case 0x03:
-		return fmt.Sprintf("JAL target = %X", inst.Address)
+		return fmt.Sprintf("JAL     %08Xh", inst.Address)
 	case 0x04:
-		return fmt.Sprintf("BEQ rt = %d, rs = %X, offset = %X", inst.Rt, inst.Rs, inst.Imm16)
+		return fmt.Sprintf("BEQ     $%d, $%d, %Xh", inst.Rs, inst.Rt, inst.Imm16)
 	case 0x05:
-		return fmt.Sprintf("BNE rt = %d, rs = %X, offset = %X", inst.Rt, inst.Rs, inst.Imm16)
+		return fmt.Sprintf("BNE     $%d, $%d, %Xh", inst.Rs, inst.Rt, inst.Imm16)
 	case 0x06:
-		return fmt.Sprintf("BLEZ rs = %d, offset = %X", inst.Rs, inst.Imm16)
+		return fmt.Sprintf("BLEZ    $%d, %Xh", inst.Rs, inst.Imm16)
 	case 0x07:
-		return fmt.Sprintf("BGTZ rs = %d, offset = %X", inst.Rs, inst.Imm16)
+		return fmt.Sprintf("BGTZ    $%d, %Xh", inst.Rs, inst.Imm16)
 	case 0x08:
-		return fmt.Sprintf("ADDI rt = %X, rs = %X, Imm = %04X", inst.Rt, inst.Rs, inst.Imm16)
+		return fmt.Sprintf("ADDI    $%d, $%d, %Xh", inst.Rt, inst.Rs, inst.Imm16sx)
 	case 0x09:
-		return fmt.Sprintf("ADDIU rt = %X, rs = %X, Imm = %04X", inst.Rt, inst.Rs, inst.Imm16)
+		return fmt.Sprintf("ADDIU   $%d, $%d, %Xh", inst.Rt, inst.Rs, inst.Imm16sx)
 	case 0x0A:
-		return fmt.Sprintf("SLTI rt = %X, rs = %X, Imm = %04X", inst.Rt, inst.Rs, inst.Imm16)
+		return fmt.Sprintf("SLTI    $%d, $%d, %Xh", inst.Rt, inst.Rs, inst.Imm16sx)
 	case 0x0B:
-		return fmt.Sprintf("SLTIU rt = %X, rs = %X, Imm = %04X", inst.Rt, inst.Rs, inst.Imm16)
+		return fmt.Sprintf("SLTIU   $%d, $%d, %Xh", inst.Rt, inst.Rs, inst.Imm16sx)
 	case 0x0C:
-		return fmt.Sprintf("ANDI rt = %X, rs = %X, Imm = %04X", inst.Rt, inst.Rs, inst.Imm16)
+		return fmt.Sprintf("ANDI    $%d, $%d, %Xh", inst.Rt, inst.Rs, inst.Imm16)
 	case 0x0D:
-		return fmt.Sprintf("ORI rt = %X, rs = %X, Imm = %04X", inst.Rt, inst.Rs, inst.Imm16)
+		return fmt.Sprintf("ORI     $%d, $%d, %Xh", inst.Rt, inst.Rs, inst.Imm16)
 	case 0x0E:
-		return fmt.Sprintf("XORI rt = %X, rs = %X, Imm = %04X", inst.Rt, inst.Rs, inst.Imm16)
+		return fmt.Sprintf("XORI    $%d, $%d, %Xh", inst.Rt, inst.Rs, inst.Imm16)
 	case 0x0F:
-		return fmt.Sprintf("LUI rt = %X, Imm = %04X", inst.Rt, inst.Imm16)
+		return fmt.Sprintf("LUI     $%d, %Xh", inst.Rt, inst.Imm16)
 	case 0x10:
 		return "COP0"
-	case 0x11:
-		return "COP1"
 	case 0x12:
 		return "COP2"
-	case 0x13:
-		return "COP3"
 	case 0x20:
-		return fmt.Sprintf("LB rt = %X, offset = %X, base = %X", inst.Rt, inst.Imm16, inst.Rs)
+		return fmt.Sprintf("LB      $%d, %Xh($%d)", inst.Rt, inst.Imm16sx, inst.Rs)
 	case 0x21:
-		return fmt.Sprintf("LH rt = %X, offset = %X, base = %X", inst.Rt, inst.Imm16, inst.Rs)
+		return fmt.Sprintf("LH      $%d, %Xh($%d)", inst.Rt, inst.Imm16sx, inst.Rs)
 	case 0x22:
-		return fmt.Sprintf("LWL rt = %X, offset = %X, base = %X", inst.Rt, inst.Imm16, inst.Rs)
+		return fmt.Sprintf("LWL     $%d, %Xh($%d)", inst.Rt, inst.Imm16sx, inst.Rs)
 	case 0x23:
-		return fmt.Sprintf("LW rt = %X, offset = %X, base = %X", inst.Rt, inst.Imm16, inst.Rs)
+		return fmt.Sprintf("LW      $%d, %Xh($%d)", inst.Rt, inst.Imm16sx, inst.Rs)
 	case 0x24:
-		return fmt.Sprintf("LBU rt = %X, offset = %X, base = %X", inst.Rt, inst.Imm16, inst.Rs)
+		return fmt.Sprintf("LBU     $%d, %Xh($%d)", inst.Rt, inst.Imm16sx, inst.Rs)
 	case 0x25:
-		return fmt.Sprintf("LHU rt = %X, offset = %X, base = %X", inst.Rt, inst.Imm16, inst.Rs)
+		return fmt.Sprintf("LHU     $%d, %Xh($%d)", inst.Rt, inst.Imm16sx, inst.Rs)
 	case 0x26:
-		return fmt.Sprintf("LWR rt = %X, offset = %X, base = %X", inst.Rt, inst.Imm16, inst.Rs)
+		return fmt.Sprintf("LWR     $%d, %Xh($%d)", inst.Rt, inst.Imm16sx, inst.Rs)
 	case 0x28:
-		return fmt.Sprintf("SB rt = %X, offset = %X, base = %X", inst.Rt, inst.Imm16, inst.Rs)
+		return fmt.Sprintf("SB      $%d, %Xh($%d)", inst.Rt, inst.Imm16sx, inst.Rs)
 	case 0x29:
-		return fmt.Sprintf("SH rt = %X, offset = %X, base = %X", inst.Rt, inst.Imm16, inst.Rs)
+		return fmt.Sprintf("SH      $%d, %Xh($%d)", inst.Rt, inst.Imm16sx, inst.Rs)
 	case 0x2A:
-		return fmt.Sprintf("SWL rt = %X, offset = %X, base = %X", inst.Rt, inst.Imm16, inst.Rs)
+		return fmt.Sprintf("SWL     $%d, %Xh($%d)", inst.Rt, inst.Imm16sx, inst.Rs)
 	case 0x2B:
-		return fmt.Sprintf("SW rt = %X, offset = %X, base = %X", inst.Rt, inst.Imm16, inst.Rs)
+		return fmt.Sprintf("SW      $%d, %Xh($%d)", inst.Rt, inst.Imm16sx, inst.Rs)
 	case 0x2E:
-		return fmt.Sprintf("SWR rt = %X, offset = %X, base = %X", inst.Rt, inst.Imm16, inst.Rs)
+		return fmt.Sprintf("SWR     $%d, %Xh($%d)", inst.Rt, inst.Imm16sx, inst.Rs)
 	case 0x30:
 		return "LWC0"
 	case 0x31:
@@ -184,6 +180,6 @@ func (inst Instruction) String() string {
 	case 0x3B:
 		return "SWC3"
 	default:
-		return "N/A"
+		return fmt.Sprintf("Unknown opcode: %02xh", inst.Opcode)
 	}
 }

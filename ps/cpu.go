@@ -1,6 +1,7 @@
 package ps
 
 import (
+	"fmt"
 	"log"
 )
 
@@ -10,6 +11,10 @@ type CPU struct {
 	// Attempts to alter the content of GPR[0] have no effect.
 	// GPRNext is ...
 	GPR, GPRNext []uint32
+
+	// COP0R contains coprocessor 0 data registers. Note that COP0 doesn't have
+	// control registers (used in CTC/CFC).
+	COP0R []uint32
 
 	// LoadDelaySlot emulates MIPS load delay
 	LoadDelaySlot  uint32
@@ -27,10 +32,21 @@ func NewCPU() CPU {
 	return CPU{
 		GPR:            make([]uint32, 32),
 		GPRNext:        make([]uint32, 32),
+		COP0R:          make([]uint32, 32),
 		LoadDelaySlot:  0,
 		LoadDelayValue: 0,
 		Pc:             0xBFC00000, // Bios start
 		PcNext:         0xBFC00004,
+	}
+}
+
+func (cpu *CPU) DumpRegisters() {
+	for line := 0; line < 4; line++ {
+		fmt.Printf("%02d | ", line*8)
+		for i := 0; i < 8; i++ {
+			fmt.Printf("%08x ", cpu.GetGPR(uint32(line*8+i)))
+		}
+		fmt.Println()
 	}
 }
 
@@ -74,7 +90,7 @@ func (cpu *CPU) JR(instruction Instruction) {
 }
 
 func (cpu *CPU) JALR(instruction Instruction) {
-	cpu.SetGPR(instruction.Rd, cpu.Pc+8)
+	cpu.SetGPR(instruction.Rd, cpu.PcNext+4)
 	cpu.PcNext = cpu.GetGPR(instruction.Rs)
 }
 
@@ -104,14 +120,14 @@ func (cpu *CPU) MTLO(instruction Instruction) {
 
 func (cpu *CPU) MULT(instruction Instruction) {
 	temp := int64(cpu.GetGPR(instruction.Rs)) * int64(cpu.GetGPR(instruction.Rt))
-	cpu.LO = uint32(temp << 32)
-	cpu.HI = uint32(temp >> 32)
+	cpu.LO = uint32(temp & 0xFFFFFFFF)
+	cpu.HI = uint32(temp>>32) & 0xFFFFFFFF
 }
 
 func (cpu *CPU) MULTU(instruction Instruction) {
-	temp := uint64(cpu.GetGPR(instruction.Rs)>>1) * uint64(cpu.GetGPR(instruction.Rt)>>1)
-	cpu.LO = uint32(temp << 32)
-	cpu.HI = uint32(temp >> 32)
+	temp := uint64(cpu.GetGPR(instruction.Rs)) * uint64(cpu.GetGPR(instruction.Rt))
+	cpu.LO = uint32(temp & 0xFFFFFFFF)
+	cpu.HI = uint32(temp>>32) & 0xFFFFFFFF
 }
 
 func (cpu *CPU) DIV(instruction Instruction) {
@@ -120,12 +136,12 @@ func (cpu *CPU) DIV(instruction Instruction) {
 }
 
 func (cpu *CPU) DIVU(instruction Instruction) {
-	cpu.LO = (cpu.GetGPR(instruction.Rs) >> 1) / (cpu.GetGPR(instruction.Rt) >> 1)
-	cpu.HI = (cpu.GetGPR(instruction.Rs) >> 1) % (cpu.GetGPR(instruction.Rt) >> 1)
+	cpu.LO = cpu.GetGPR(instruction.Rs) / cpu.GetGPR(instruction.Rt)
+	cpu.HI = cpu.GetGPR(instruction.Rs) % cpu.GetGPR(instruction.Rt)
 }
 
 func (cpu *CPU) ADD(instruction Instruction) {
-	cpu.SetGPR(instruction.Rd, uint32(int32(cpu.GetGPR(instruction.Rs))+int32(cpu.GetGPR(instruction.Rt))))
+	cpu.SetGPR(instruction.Rd, cpu.GetGPR(instruction.Rs)+cpu.GetGPR(instruction.Rt))
 }
 
 func (cpu *CPU) ADDU(instruction Instruction) {
@@ -133,7 +149,7 @@ func (cpu *CPU) ADDU(instruction Instruction) {
 }
 
 func (cpu *CPU) SUB(instruction Instruction) {
-	cpu.SetGPR(instruction.Rd, uint32(int32(cpu.GetGPR(instruction.Rs))-int32(cpu.GetGPR(instruction.Rt))))
+	cpu.SetGPR(instruction.Rd, cpu.GetGPR(instruction.Rs)-cpu.GetGPR(instruction.Rt))
 }
 
 func (cpu *CPU) SUBU(instruction Instruction) {
@@ -191,7 +207,7 @@ func (cpu *CPU) BLTZAL(instruction Instruction) {
 	if (cpu.GetGPR(instruction.Rs) >> 31) == 1 {
 		cpu.PcNext = address
 	}
-	cpu.SetGPR(31, cpu.Pc+8)
+	cpu.SetGPR(31, cpu.PcNext+4)
 }
 
 func (cpu *CPU) BGEZAL(instruction Instruction) {
@@ -199,16 +215,16 @@ func (cpu *CPU) BGEZAL(instruction Instruction) {
 	if (cpu.GetGPR(instruction.Rs) >> 31) == 0 {
 		cpu.PcNext = address
 	}
-	cpu.SetGPR(31, cpu.Pc+8)
+	cpu.SetGPR(31, cpu.PcNext+4)
 }
 
 func (cpu *CPU) J(instruction Instruction) {
-	cpu.PcNext = cpu.Pc&0xF0000000 | (instruction.Address << 2)
+	cpu.PcNext = cpu.PcNext&0xF0000000 | (instruction.Address << 2)
 }
 
 func (cpu *CPU) JAL(instruction Instruction) {
-	cpu.SetGPR(31, cpu.Pc+8)
-	cpu.PcNext = cpu.Pc&0xF0000000 | (instruction.Address << 2)
+	cpu.SetGPR(31, cpu.PcNext+4)
+	cpu.PcNext = cpu.PcNext&0xF0000000 | (instruction.Address << 2)
 }
 
 func (cpu *CPU) BEQ(instruction Instruction) {
@@ -244,7 +260,6 @@ func (cpu *CPU) ADDI(instruction Instruction) {
 }
 
 func (cpu *CPU) ADDIU(instruction Instruction) {
-	//TODO 32-bit-overflow
 	cpu.SetGPR(instruction.Rt, cpu.GetGPR(instruction.Rs)+instruction.Imm16sx)
 }
 
@@ -280,20 +295,41 @@ func (cpu *CPU) LUI(instruction Instruction) {
 	cpu.SetGPR(instruction.Rt, instruction.Imm16<<16)
 }
 
-func (cpu *CPU) MFC(instruction Instruction, bus *Bus) {
-	//TODO Coprocessor
+func (cpu *CPU) MFC(instruction Instruction, bus *Bus, z uint32) {
+	cpu.LoadDelaySlot = instruction.Rt
+	cpu.LoadDelayValue = cpu.COP0R[instruction.Rd]
+
+	if z == 2 {
+		panic("unimplemented")
+	}
 }
 
-func (cpu *CPU) CFC(instruction Instruction, bus *Bus) {
-	//TODO Coprocessor
+func (cpu *CPU) CFC(instruction Instruction, bus *Bus, z uint32) {
+	if z == 0 {
+		panic("COP0 has no control registers")
+	}
+
+	if z == 2 {
+		panic("unimplemented")
+	}
 }
 
-func (cpu *CPU) MTC(instruction Instruction, bus *Bus) {
-	//TODO Coprocessor
+func (cpu *CPU) MTC(instruction Instruction, bus *Bus, z uint32) {
+	cpu.COP0R[instruction.Rd] = cpu.GetGPR(instruction.Rt)
+
+	if z == 2 {
+		panic("unimplemented")
+	}
 }
 
-func (cpu *CPU) CTC(instruction Instruction, bus *Bus) {
-	//TODO Coprocessor
+func (cpu *CPU) CTC(instruction Instruction, bus *Bus, z uint32) {
+	if z == 0 {
+		panic("COP0 has no control registers")
+	}
+
+	if z == 2 {
+		panic("unimplemented")
+	}
 }
 
 func (cpu *CPU) LB(instruction Instruction, bus *Bus) {
@@ -378,11 +414,19 @@ func (cpu *CPU) LWR(instruction Instruction, bus *Bus) {
 }
 
 func (cpu *CPU) SB(instruction Instruction, bus *Bus) {
+	if cpu.COP0R[12]&0x10000 != 0 {
+		log.Printf("Ignored store to cache")
+		return
+	}
 	address := instruction.Imm16sx + cpu.GetGPR(instruction.Rs)
 	bus.StoreByte(address, uint8(cpu.GetGPR(instruction.Rt)&0xFF))
 }
 
 func (cpu *CPU) SH(instruction Instruction, bus *Bus) {
+	if cpu.COP0R[12]&0x10000 != 0 {
+		log.Printf("Ignored store to cache")
+		return
+	}
 	address := instruction.Imm16sx + cpu.GetGPR(instruction.Rs)
 	bus.StoreHalfword(address, uint16(cpu.GetGPR(instruction.Rt)&0xFFFF))
 }
@@ -392,6 +436,11 @@ func (cpu *CPU) SWL(instruction Instruction, bus *Bus) {
 }
 
 func (cpu *CPU) SW(instruction Instruction, bus *Bus) {
+	if cpu.COP0R[12]&0x10000 != 0 {
+		log.Printf("Ignored store to cache")
+		return
+	}
+
 	address := instruction.Imm16sx + cpu.GetGPR(instruction.Rs)
 	bus.StoreWord(address, cpu.GetGPR(instruction.Rt))
 }
@@ -505,15 +554,18 @@ func (cpu *CPU) Execute(instruction Instruction, bus *Bus) {
 	case 0x0F:
 		cpu.LUI(instruction)
 	case 0x10:
+		fallthrough
+	case 0x12:
+		z := instruction.Opcode - 0x10
 		switch instruction.Rs {
 		case 0x0:
-			cpu.MFC(instruction, bus)
+			cpu.MFC(instruction, bus, z)
 		case 0x2:
-			cpu.CFC(instruction, bus)
+			cpu.CFC(instruction, bus, z)
 		case 0x4:
-			cpu.MTC(instruction, bus)
+			cpu.MTC(instruction, bus, z)
 		case 0x6:
-			cpu.CTC(instruction, bus)
+			cpu.CTC(instruction, bus, z)
 		default:
 			log.Fatalf("unknown coprocessor opcode instruction: %02x", instruction.Rs)
 		}
@@ -549,8 +601,9 @@ func (cpu *CPU) Execute(instruction Instruction, bus *Bus) {
 func (cpu *CPU) Cycle(bus *Bus) {
 	instruction := NewInstruction(bus.LoadWord(cpu.Pc))
 	log.Printf("%08x %s", cpu.Pc, instruction)
-	cpu.PcNext += 4
+	// cpu.DumpRegisters()
 	cpu.Pc = cpu.PcNext
+	cpu.PcNext += 4
 	cpu.SetGPR(cpu.LoadDelaySlot, cpu.LoadDelayValue)
 	cpu.LoadDelaySlot = 0
 	cpu.LoadDelayValue = 0

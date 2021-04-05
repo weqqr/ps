@@ -26,6 +26,20 @@ const (
 	CacheControlSize          = 512
 )
 
+type MemoryOperation int
+
+const (
+	OpLoad MemoryOperation = iota
+	OpStore
+)
+
+func (op MemoryOperation) String() string {
+	if op == OpLoad {
+		return "load"
+	}
+	return "store"
+}
+
 type Bus struct {
 	mainRAM               []byte
 	firstExpansionRegion  []byte
@@ -58,7 +72,11 @@ func inRange(value, start, size uint32) bool {
 	return value >= start && value < start+size
 }
 
-func (bus *Bus) Map(address uint32) (uint32, []byte) {
+func (bus *Bus) Map(address uint32, op MemoryOperation) (uint32, []byte) {
+	if op == OpStore {
+		log.Printf("[Map] Address %08Xh mapped for %s", address, op)
+	}
+
 	if inRange(address, CacheControl, CacheControlSize) {
 		return address - CacheControl, bus.cacheControl
 	}
@@ -89,19 +107,19 @@ func (bus *Bus) Map(address uint32) (uint32, []byte) {
 }
 
 func (bus *Bus) LoadByte(address uint32) uint8 {
-	address, data := bus.Map(address)
+	address, data := bus.Map(address, OpLoad)
 	return data[address]
 }
 
 func (bus *Bus) LoadHalfword(address uint32) uint16 {
-	address, data := bus.Map(address)
+	address, data := bus.Map(address, OpLoad)
 	a := uint16(data[address+1])
 	b := uint16(data[address])
 	return (a << 8) | b
 }
 
 func (bus *Bus) LoadWord(address uint32) uint32 {
-	address, data := bus.Map(address)
+	address, data := bus.Map(address, OpLoad)
 	a := uint32(data[address+3])
 	b := uint32(data[address+2])
 	c := uint32(data[address+1])
@@ -110,18 +128,18 @@ func (bus *Bus) LoadWord(address uint32) uint32 {
 }
 
 func (bus *Bus) StoreByte(address uint32, value uint8) {
-	address, data := bus.Map(address)
+	address, data := bus.Map(address, OpStore)
 	data[address] = value
 }
 
 func (bus *Bus) StoreHalfword(address uint32, value uint16) {
-	address, data := bus.Map(address)
+	address, data := bus.Map(address, OpStore)
 	data[address+1] = uint8(value >> 8)
 	data[address] = uint8(value)
 }
 
 func (bus *Bus) StoreWord(address uint32, value uint32) {
-	address, data := bus.Map(address)
+	address, data := bus.Map(address, OpStore)
 
 	data[address+3] = uint8(value >> 24)
 	data[address+2] = uint8(value >> 16)
