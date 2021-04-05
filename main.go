@@ -1,9 +1,8 @@
 package main
 
 import (
-	"os"
-
 	"github.com/weqqr/ps/ps"
+	"os"
 )
 
 func main() {

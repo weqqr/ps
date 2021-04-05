@@ -51,7 +51,7 @@ func (cpu *CPU) SRL(instruction Instruction) {
 }
 
 func (cpu *CPU) SRA(instruction Instruction) {
-	cpu.SetGPR(instruction.Rd, uint32(int32(cpu.GetGPR(instruction.Rt))<<instruction.ShiftAmount))
+	cpu.SetGPR(instruction.Rd, uint32(int32(cpu.GetGPR(instruction.Rt))>>instruction.ShiftAmount))
 }
 
 func (cpu *CPU) SLLV(instruction Instruction) {
@@ -91,7 +91,7 @@ func (cpu *CPU) MFHI(instruction Instruction) {
 }
 
 func (cpu *CPU) MTHI(instruction Instruction) {
-	cpu.SetGPR(cpu.HI, instruction.Rs)
+	cpu.HI = cpu.GetGPR(instruction.Rs)
 }
 
 func (cpu *CPU) MFLO(instruction Instruction) {
@@ -103,13 +103,13 @@ func (cpu *CPU) MTLO(instruction Instruction) {
 }
 
 func (cpu *CPU) MULT(instruction Instruction) {
-	temp := uint64(cpu.GetGPR(instruction.Rs) * cpu.GetGPR(instruction.Rt))
+	temp := int64(cpu.GetGPR(instruction.Rs)) * int64(cpu.GetGPR(instruction.Rt))
 	cpu.LO = uint32(temp << 32)
 	cpu.HI = uint32(temp >> 32)
 }
 
 func (cpu *CPU) MULTU(instruction Instruction) {
-	temp := uint64((cpu.GetGPR(instruction.Rs) >> 1) * (cpu.GetGPR(instruction.Rt) >> 1))
+	temp := uint64(cpu.GetGPR(instruction.Rs)>>1) * uint64(cpu.GetGPR(instruction.Rt)>>1)
 	cpu.LO = uint32(temp << 32)
 	cpu.HI = uint32(temp >> 32)
 }
@@ -153,7 +153,7 @@ func (cpu *CPU) XOR(instruction Instruction) {
 }
 
 func (cpu *CPU) NOR(instruction Instruction) {
-	cpu.SetGPR(instruction.Rd, ^(cpu.GetGPR(instruction.Rs) | cpu.GetGPR(instruction.Rt)))
+	cpu.SetGPR(instruction.Rd, 0xFFFFFFFF^(cpu.GetGPR(instruction.Rs)|cpu.GetGPR(instruction.Rt)))
 }
 
 func (cpu *CPU) SLT(instruction Instruction) {
@@ -173,31 +173,31 @@ func (cpu *CPU) SLTU(instruction Instruction) {
 }
 
 func (cpu *CPU) BLTZ(instruction Instruction) {
-	instruction.Address = instruction.Imm16sx << 2
+	address := cpu.PcNext + (instruction.Imm16sx << 2)
 	if (cpu.GetGPR(instruction.Rs) >> 31) == 1 {
-		cpu.PcNext += instruction.Address
+		cpu.PcNext = address
 	}
 }
 
 func (cpu *CPU) BGEZ(instruction Instruction) {
-	instruction.Address = instruction.Imm16sx << 2
+	address := cpu.PcNext + (instruction.Imm16sx << 2)
 	if (cpu.GetGPR(instruction.Rs) >> 31) == 0 {
-		cpu.PcNext += instruction.Address
+		cpu.PcNext = address
 	}
 }
 
 func (cpu *CPU) BLTZAL(instruction Instruction) {
-	instruction.Address = instruction.Imm16sx << 2
+	address := cpu.PcNext + (instruction.Imm16sx << 2)
 	if (cpu.GetGPR(instruction.Rs) >> 31) == 1 {
-		cpu.PcNext += instruction.Address
+		cpu.PcNext = address
 	}
 	cpu.SetGPR(31, cpu.Pc+8)
 }
 
 func (cpu *CPU) BGEZAL(instruction Instruction) {
-	instruction.Address = instruction.Imm16sx << 2
+	address := cpu.PcNext + (instruction.Imm16sx << 2)
 	if (cpu.GetGPR(instruction.Rs) >> 31) == 0 {
-		cpu.PcNext += instruction.Address
+		cpu.PcNext = address
 	}
 	cpu.SetGPR(31, cpu.Pc+8)
 }
@@ -212,30 +212,30 @@ func (cpu *CPU) JAL(instruction Instruction) {
 }
 
 func (cpu *CPU) BEQ(instruction Instruction) {
-	instruction.Address = instruction.Imm16sx << 2
+	address := cpu.PcNext + (instruction.Imm16sx << 2)
 	if cpu.GetGPR(instruction.Rs) == cpu.GetGPR(instruction.Rt) {
-		cpu.PcNext += instruction.Address
+		cpu.PcNext = address
 	}
 }
 
 func (cpu *CPU) BNE(instruction Instruction) {
-	instruction.Address = instruction.Imm16sx << 2
+	address := cpu.PcNext + (instruction.Imm16sx << 2)
 	if cpu.GetGPR(instruction.Rs) != cpu.GetGPR(instruction.Rt) {
-		cpu.PcNext += instruction.Address
+		cpu.PcNext = address
 	}
 }
 
 func (cpu *CPU) BLEZ(instruction Instruction) {
-	instruction.Address = instruction.Imm16sx << 2
+	address := cpu.PcNext + (instruction.Imm16sx << 2)
 	if (cpu.GetGPR(instruction.Rs)>>31) == 1 || cpu.GetGPR(instruction.Rs) == 0 {
-		cpu.PcNext += instruction.Address
+		cpu.PcNext = address
 	}
 }
 
 func (cpu *CPU) BGTZ(instruction Instruction) {
-	instruction.Address = instruction.Imm16sx << 2
+	address := cpu.PcNext + (instruction.Imm16sx << 2)
 	if (cpu.GetGPR(instruction.Rs)>>31) == 0 && cpu.GetGPR(instruction.Rs) != 0 {
-		cpu.PcNext += instruction.Address
+		cpu.PcNext = address
 	}
 }
 
@@ -250,17 +250,17 @@ func (cpu *CPU) ADDIU(instruction Instruction) {
 
 func (cpu *CPU) SLTI(instruction Instruction) {
 	if cpu.GetGPR(instruction.Rs) < instruction.Imm16sx {
-		cpu.SetGPR(instruction.Rd, 1)
+		cpu.SetGPR(instruction.Rt, 1)
 	} else {
-		cpu.SetGPR(instruction.Rd, 0)
+		cpu.SetGPR(instruction.Rt, 0)
 	}
 }
 
 func (cpu *CPU) SLTIU(instruction Instruction) {
 	if (cpu.GetGPR(instruction.Rs) >> 1) < instruction.Imm16sx {
-		cpu.SetGPR(instruction.Rd, 1)
+		cpu.SetGPR(instruction.Rt, 1)
 	} else {
-		cpu.SetGPR(instruction.Rd, 0)
+		cpu.SetGPR(instruction.Rt, 0)
 	}
 }
 
@@ -305,7 +305,7 @@ func (cpu *CPU) LB(instruction Instruction, bus *Bus) {
 
 func (cpu *CPU) LH(instruction Instruction, bus *Bus) {
 	address := instruction.Imm16sx + cpu.GetGPR(instruction.Rs)
-	value := bus.LoadByte(address)
+	value := bus.LoadHalfword(address)
 	cpu.LoadDelaySlot = instruction.Rt
 	cpu.LoadDelayValue = uint32(int16(value))
 }
@@ -318,25 +318,63 @@ func (cpu *CPU) LW(instruction Instruction, bus *Bus) {
 }
 
 func (cpu *CPU) LWL(instruction Instruction, bus *Bus) {
-	//TODO Later
+	address := instruction.Imm16sx + cpu.GetGPR(instruction.Rs)
+	var temp uint32 = 0
+
+	switch address % 4 {
+	case 0:
+		cpu.SetGPR(instruction.Rt, bus.LoadWord(address/4))
+		break
+	case 1:
+		temp = bus.LoadWord(address/4) & 0xFFFFFF << 8
+		cpu.SetGPR(instruction.Rt, cpu.GetGPR(instruction.Rt)&0xFF|temp)
+		break
+	case 2:
+		temp = bus.LoadWord(address/4) & 0xFFFF << 16
+		cpu.SetGPR(instruction.Rt, cpu.GetGPR(instruction.Rt)&0xFFFF|temp)
+		break
+	case 3:
+		temp = bus.LoadWord(address/4) & 0xFF << 24
+		cpu.SetGPR(instruction.Rt, cpu.GetGPR(instruction.Rt)&0xFFFFFF|temp)
+		break
+	}
 }
 
 func (cpu *CPU) LBU(instruction Instruction, bus *Bus) {
 	address := instruction.Imm16sx + cpu.GetGPR(instruction.Rs)
 	value := bus.LoadByte(address)
 	cpu.LoadDelaySlot = instruction.Rt
-	cpu.LoadDelayValue = uint32(0x000000 & int8(value))
+	cpu.LoadDelayValue = uint32(value)
 }
 
 func (cpu *CPU) LHU(instruction Instruction, bus *Bus) {
 	address := instruction.Imm16sx + cpu.GetGPR(instruction.Rs)
-	value := bus.LoadByte(address)
+	value := bus.LoadHalfword(address)
 	cpu.LoadDelaySlot = instruction.Rt
-	cpu.LoadDelayValue = uint32(0x0000 & int16(value))
+	cpu.LoadDelayValue = uint32(value)
 }
 
 func (cpu *CPU) LWR(instruction Instruction, bus *Bus) {
-	//TODO Later
+	address := instruction.Imm16sx + cpu.GetGPR(instruction.Rs)
+	var temp uint32 = 0
+
+	switch address % 4 {
+	case 0:
+		cpu.SetGPR(instruction.Rt, bus.LoadWord(address/4))
+		break
+	case 1:
+		temp = (bus.LoadWord(address/4) & 0xFF000000 >> 24) & 0xFF
+		cpu.SetGPR(instruction.Rt, cpu.GetGPR(instruction.Rt)&0xFFFFFF00|temp)
+		break
+	case 2:
+		temp = (bus.LoadWord(address/4) & 0xFFFF0000 >> 16) & 0xFFFF
+		cpu.SetGPR(instruction.Rt, cpu.GetGPR(instruction.Rt)&0xFFFF0000|temp)
+		break
+	case 3:
+		temp = (bus.LoadWord(address/4) & 0xFFFFFF00 >> 8) & 0xFFFFFF
+		cpu.SetGPR(instruction.Rt, cpu.GetGPR(instruction.Rt)&0xFF000000|temp)
+		break
+	}
 }
 
 func (cpu *CPU) SB(instruction Instruction, bus *Bus) {
@@ -479,24 +517,24 @@ func (cpu *CPU) Execute(instruction Instruction, bus *Bus) {
 		default:
 			log.Fatalf("unknown coprocessor opcode instruction: %02x", instruction.Rs)
 		}
-	//case 0x20:
-	//	cpu.LB(instruction, bus)
-	//case 0x21:
-	//	cpu.LH(instruction, bus)
+	case 0x20:
+		cpu.LB(instruction, bus)
+	case 0x21:
+		cpu.LH(instruction, bus)
 	case 0x23:
 		cpu.LW(instruction, bus)
-	//case 0x22:
-	//	cpu.LWL(instruction, bus)
-	//case 0x24:
-	//	cpu.LBU(instruction, bus)
-	//case 0x25:
-	//	cpu.LHU(instruction, bus)
-	//case 0x26:
-	//	cpu.LWR(instruction, bus)
-	//case 0x28:
-	//	cpu.SB(instruction, bus)
-	//case 0x29:
-	//	cpu.SH(instruction, bus)
+	case 0x22:
+		cpu.LWL(instruction, bus)
+	case 0x24:
+		cpu.LBU(instruction, bus)
+	case 0x25:
+		cpu.LHU(instruction, bus)
+	case 0x26:
+		cpu.LWR(instruction, bus)
+	case 0x28:
+		cpu.SB(instruction, bus)
+	case 0x29:
+		cpu.SH(instruction, bus)
 	//case 0x2A:
 	//	cpu.SWL(instruction, bus)
 	case 0x2B:
