@@ -18,6 +18,8 @@ type ColorU8 struct {
 
 // GTE emulates PlayStation's Geometry Transformation Engine, a coprocessor
 // designed for linear algebra
+// IR1, IR2, and IR3 from PS1 documentation are called IR.X, IR.Y, and IR.Z here
+// R, G, and B from PS1 documentation are called RGB0, RGB1, and RGB2 here
 type GTE struct {
 	V0, V1, V2       Vector3
 	RGBC             uint8
@@ -93,40 +95,121 @@ func saturate(value int16) int16 {
 	}
 	return value
 }
+/*
+func (g *GTE) CC() {
+	g.IR.X, g.IR.Y, g.IR.Z = g.MAC1, g.MAC2, g.MAC3
+	g.MAC1, g.MAC2, g.MAC3 = g.BK * 0x1000 + * g.IR >> (g.sf * 12)
+	g.MAC1, g.MAC2, g.MAC3 = g.R * g.IR.X, g.G * g.IR.Y, g.B * g.IR.Z << 4
+	g.MAC1, g.MAC2, g.MAC3 = g.MAC1, g.MAC2, g.MAC3 >> (g.sf * 12)
+	//Fix FIFO!
+	//g.Color FIFO = g.MAC1/16,g.MAC2/16,g.MAC3/16,g.CODE
+}
+*/
 
-func (g *GTE) DCPL() {
-	[g.MAC1, g.MAC2, g.MAC3] = [g.R * g.IR1, g.G * g.IR2, g.B * g.IR3] << 4
-	[g.MAC1, g.MAC2, g.MAC3] = g.MAC + (g.FC - g.MAC) * g.IR0
-	[g.MAC1, g.MAC2, g.MAC3] = [MAC1, MAC2, MAC3] >> (g.sf * 12)
-	Color FIFO = [g.MAC1 / 16, g.MAC2 / 16, MAC3 / 16, g.CODE]
-	[g.IR1, g.IR2, g.IR3] = [g.MAC1, g.MAC2, g.MAC3]
+func (FC Vector3) VectorSubtract(MAC int32) (result Vector3) {
+    result.X = FC.X - MAC
+    result.Y = FC.Y - MAC
+    result.Z = FC.Z - MAC
+    return result
 }
 
-func (g *GTE) DPCS() {
-	[g.MAC1, g.MAC2, g.MAC3] = [g.R, g.G, g.B] >> 16
-	[g.MAC1, g.MAC2, g.MAC3] = g.MAC + (g.FC - g.MAC) * g.IR0
-	[g.MAC1, g.MAC2, g.MAC3] = [MAC1, MAC2, MAC3] >> (g.sf * 12)
-	Color FIFO = [g.MAC1 / 16, g.MAC2 / 16, MAC3 / 16, g.CODE]
-	[g.IR1, g.IR2, g.IR3] = [g.MAC1, g.MAC2, g.MAC3]
+func (FC Vector3) VectorSum(MAC int32) (result Vector3) {
+    result.X = FC.X + MAC
+    result.Y = FC.Y + MAC
+    result.Z = FC.Z + MAC
+    return result
 }
 
-func (g *GTE) DPCT() {
-	[g.MAC1, g.MAC2, g.MAC3] = [g.R, g.G, g.B] >> 16
-	[g.MAC1, g.MAC2, g.MAC3] = g.MAC + (g.FC - g.MAC) * g.IR0
-	[g.MAC1, g.MAC2, g.MAC3] = [MAC1, MAC2, MAC3] >> (g.sf * 12)
-	Color FIFO = [g.MAC1 / 16, g.MAC2 / 16, MAC3 / 16, g.CODE]
-	[g.IR1, g.IR2, g.IR3] = [g.MAC1, g.MAC2, g.MAC3]
+func (FC Vector3) VectorMultiply(MAC int16) (result Vector3) {
+    result.X = FC.X * int32(MAC)
+    result.Y = FC.Y * int32(MAC)
+    result.Z = FC.Z * int32(MAC)
+    return result
 }
 
-func (g *GTE) INTPL() {
-	[g.MAC1, g.MAC2, g.MAC3] = [g.IR1, g.IR2, g.IR3] >> 12
-	[g.MAC1, g.MAC2, g.MAC3] = g.MAC + (g.FC - g.MAC) * g.IR0
-	[g.MAC1, g.MAC2, g.MAC3] = [MAC1, MAC2, MAC3] >> (g.sf * 12)
-	Color FIFO = [g.MAC1 / 16, g.MAC2 / 16, MAC3 / 16, g.CODE]
-	[g.IR1, g.IR2, g.IR3] = [g.MAC1, g.MAC2, g.MAC3]
+func (RGB ColorU8) ColorVectorMultiply(IR int32) (result Vector3) {
+    result.X = int32(RGB.X) * IR
+    result.Y = int32(RGB.Y) * IR
+    result.Z = int32(RGB.Z) * IR
+    return result
 }
 
 
+func (g *GTE) DCPL(p GTEParameters) {
+	g.MAC1 = g.RGB0.ColorVectorMultiply(g.IR.X).X << 4
+	g.MAC2 = g.RGB1.ColorVectorMultiply(g.IR.Y).Y << 4
+	g.MAC3 = g.RGB2.ColorVectorMultiply(g.IR.Z).Z << 4
+
+	XYZ := g.FC.VectorSubtract(g.MAC0).VectorMultiply(g.IR0).VectorSum(g.MAC0)
+	g.MAC1, g.MAC2, g.MAC3 = XYZ.X, XYZ.Y, XYZ.Z
+
+	g.MAC1 = g.MAC1 >> p.Shift
+	g.MAC2 = g.MAC2 >> p.Shift
+	g.MAC3 = g.MAC3 >> p.Shift
+
+	//Fix FIFO!
+	//g.Color FIFO = g.MAC1/16,g.MAC2/16,g.MAC3/16,g.CODE
+
+	g.IR.X, g.IR.Y, g.IR.Z = g.MAC1, g.MAC2, g.MAC3
+}
+
+
+func (g *GTE) DPCS(p GTEParameters) {
+	g.MAC1 = int32(g.RGB0.X) << 16
+	g.MAC2 = int32(g.RGB1.Y) << 16
+	g.MAC3 = int32(g.RGB2.Z) << 16
+
+	XYZ := g.FC.VectorSubtract(g.MAC0).VectorMultiply(g.IR0).VectorSum(g.MAC0)
+	g.MAC1, g.MAC2, g.MAC3 = XYZ.X, XYZ.Y, XYZ.Z
+
+	g.MAC1 = g.MAC1 >> p.Shift
+	g.MAC2 = g.MAC2 >> p.Shift
+	g.MAC3 = g.MAC3 >> p.Shift
+
+	//Fix FIFO!
+	//g.Color FIFO = g.MAC1/16,g.MAC2/16,g.MAC3/16,g.CODE
+
+	g.IR.X, g.IR.Y, g.IR.Z = g.MAC1, g.MAC2, g.MAC3
+}
+
+
+func (g *GTE) DPCT(p GTEParameters) {
+	
+	g.MAC1 = int32(g.RGB0.X) << 16
+	g.MAC2 = int32(g.RGB1.Y) << 16
+	g.MAC3 = int32(g.RGB2.Z) << 16
+
+	XYZ := g.FC.VectorSubtract(g.MAC0).VectorMultiply(g.IR0).VectorSum(g.MAC0)
+	g.MAC1, g.MAC2, g.MAC3 = XYZ.X, XYZ.Y, XYZ.Z
+
+	g.MAC1 = g.MAC1 >> p.Shift
+	g.MAC2 = g.MAC2 >> p.Shift
+	g.MAC3 = g.MAC3 >> p.Shift
+
+	//Fix FIFO!
+	//g.Color FIFO = g.MAC1/16,g.MAC2/16,g.MAC3/16,g.CODE
+
+	g.IR.X, g.IR.Y, g.IR.Z = g.MAC1, g.MAC2, g.MAC3
+}
+
+func (g *GTE) INTPL(p GTEParameters) {
+	XYZ := g.FC.VectorSubtract(g.MAC0).VectorMultiply(g.IR0).VectorSum(g.MAC0)
+
+	g.MAC1 = g.IR.X << 12
+	g.MAC2 = g.IR.Y << 12
+	g.MAC3 = g.IR.Z << 12
+
+	g.MAC1, g.MAC2, g.MAC3 = XYZ.X, XYZ.Y, XYZ.Z
+
+	g.MAC1 = g.MAC1 >> p.Shift
+	g.MAC2 = g.MAC2 >> p.Shift
+	g.MAC3 = g.MAC3 >> p.Shift
+
+	//Fix FIFO!
+	//g.Color FIFO = g.MAC1/16,g.MAC2/16,g.MAC3/16,g.CODE
+
+	g.IR.X, g.IR.Y, g.IR.Z = g.MAC1, g.MAC2, g.MAC3
+}
 
 
 func (g *GTE) NCLIP() {
